@@ -10,5 +10,12 @@ type Message struct {
 }
 
 func main() {
+	myInv := Inventory{
+		spades:   4,
+		clubs:    4,
+		diamonds: 1,
+		hearts:   1,
+	}
 
+	myInv.calcPrior()
 }
