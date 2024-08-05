@@ -11,11 +11,11 @@ type Message struct {
 
 func main() {
 	myInv := Inventory{
-		spades:   4,
-		clubs:    4,
-		diamonds: 1,
-		hearts:   1,
+		spades:   1,
+		clubs:    1,
+		diamonds: 4,
+		hearts:   4,
 	}
 
-	myInv.calcPrior()
+	myInv.complexPrior()
 }

@@ -13,12 +13,21 @@ const (
 	remainingNonGoal   = 30
 
 	totalHands = 847660528
-	/*
-		goal suit can have 8 cards but we'll use ten
-		so we don't mistakenlly overestimate
-	*/
-
 )
+
+func combination(n, k int) int {
+	if k > n {
+		return 0
+	}
+	if k > n/2 {
+		k = n - k
+	}
+	comb := 1
+	for i := 1; i <= k; i++ {
+		comb = (n - k + i) * comb / i
+	}
+	return comb
+}
 
 func (inv *Inventory) calcPrior() {
 	cards := map[Suit]int{
@@ -54,16 +63,57 @@ func (inv *Inventory) calcPrior() {
 	}
 }
 
-func combination(n, k int) int {
-	if k > n {
-		return 0
+func (inv *Inventory) complexPrior() {
+	cards := map[Suit]int{
+		spade:   inv.spades,
+		club:    inv.clubs,
+		diamond: inv.diamonds,
+		heart:   inv.hearts,
 	}
-	if k > n/2 {
-		k = n - k
+	complexProbs := make(map[Suit]float32)
+
+	for card, amount := range cards {
+		otherCards := make(map[Suit]int)
+
+		switch card {
+		case spade, club:
+			otherCards[diamond] = inv.diamonds
+			otherCards[heart] = inv.hearts
+		case diamond, heart:
+			otherCards[spade] = inv.spades
+			otherCards[club] = inv.clubs
+		}
+		for otherCard, count := range otherCards {
+			restOfHand := hand - amount - count
+
+			combCardCommonOtherCard := float32(combination(12, amount) * combination(10, count) * combination(18, restOfHand))
+
+			combCardOtherCard := float32(combination(10, amount) * combination(10, count) * combination(20, restOfHand))
+
+			probCardCommonOtherCard := combCardCommonOtherCard / totalHands
+			probCardNotCommon := combCardOtherCard / totalHands
+
+			probCardOtherCard := (probCardCommonOtherCard * initProb) + (probCardNotCommon * (1 - initProb))
+
+			bayesComplex := (probCardCommonOtherCard * initProb) / probCardOtherCard
+
+			// maybe use max function instead
+			if complexProbs[card] == 0 {
+				complexProbs[card] = bayesComplex
+			} else {
+				complexProbs[card] = max(bayesComplex, complexProbs[card])
+			}
+
+			fmt.Printf("Probability of %s given %d of %s is %.2f\n", card, count, otherCard, bayesComplex)
+
+		}
+
 	}
-	comb := 1
-	for i := 1; i <= k; i++ {
-		comb = (n - k + i) * comb / i
+	fmt.Println("\nMAX PROBABILITES")
+	for card, prob := range complexProbs {
+		fmt.Printf("%s had probability of %.2f\n", card, prob)
 	}
-	return comb
+
+	// Implement bayes that condsiders all other card in hand
+
 }
