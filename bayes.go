@@ -31,10 +31,10 @@ func combination(n, k int) int {
 
 func (inv *Inventory) calcPrior() {
 	cards := map[Suit]int{
-		spade:   inv.spades,
-		club:    inv.clubs,
-		diamond: inv.diamonds,
-		heart:   inv.hearts,
+		spades:   inv.spades,
+		clubs:    inv.clubs,
+		diamonds: inv.diamonds,
+		hearts:   inv.hearts,
 	}
 
 	probs := make(map[Suit]float32)
@@ -65,10 +65,10 @@ func (inv *Inventory) calcPrior() {
 
 func (inv *Inventory) complexPrior() {
 	cards := map[Suit]int{
-		spade:   inv.spades,
-		club:    inv.clubs,
-		diamond: inv.diamonds,
-		heart:   inv.hearts,
+		spades:   inv.spades,
+		clubs:    inv.clubs,
+		diamonds: inv.diamonds,
+		hearts:   inv.hearts,
 	}
 	complexProbs := make(map[Suit]float32)
 
@@ -76,12 +76,12 @@ func (inv *Inventory) complexPrior() {
 		otherCards := make(map[Suit]int)
 
 		switch card {
-		case spade, club:
-			otherCards[diamond] = inv.diamonds
-			otherCards[heart] = inv.hearts
-		case diamond, heart:
-			otherCards[spade] = inv.spades
-			otherCards[club] = inv.clubs
+		case spades, clubs:
+			otherCards[diamonds] = inv.diamonds
+			otherCards[hearts] = inv.hearts
+		case diamonds, hearts:
+			otherCards[spades] = inv.spades
+			otherCards[clubs] = inv.clubs
 		}
 		for otherCard, count := range otherCards {
 			restOfHand := hand - amount - count
