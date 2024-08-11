@@ -2,10 +2,10 @@ package main
 
 func main() {
 	myInv := Inventory{
-		spades:   3,
-		clubs:    0,
-		diamonds: 3,
-		hearts:   8,
+		spades:   0,
+		clubs:    6,
+		diamonds: 4,
+		hearts:   0,
 	}
 
 	myInv.complexPrior()

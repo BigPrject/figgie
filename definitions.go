@@ -4,6 +4,11 @@ import "encoding/json"
 
 type Suit string
 
+type Order struct {
+	Card      string `json:"card"`
+	Prince    int    `json:"price"`
+	Direction string `json:"direction"`
+}
 type Trade struct {
 	Card   Suit
 	Price  int
