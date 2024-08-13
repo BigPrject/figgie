@@ -1,5 +1,7 @@
 package main
 
+var inventory *Inventory
+
 func main() {
 	myInv := Inventory{
 		spades:   0,

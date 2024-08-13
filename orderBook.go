@@ -27,9 +27,9 @@ func (book *Orderbook) newlastPrice(p int) {
 	book.lastPrice = p
 }
 
-func newBook() Orderbook {
+func newBook() *Orderbook {
 
-	return Orderbook{
+	return &Orderbook{
 		ask: Qoute{
 			Price:  0,
 			Qouter: "",

@@ -37,19 +37,32 @@ type CardData struct {
 	LastTrade string  `json:"last_trade"`
 }
 
-func dealtCards(message Message) *Inventory {
+func handleMessage(payload []byte, gs *GameState) {
+	var m Message
+	err := json.Unmarshal(payload, &m)
+	if err != nil {
+		fmt.Printf("Couldn't unmarshall paylaod %v", err)
+	}
+	switch m.Kind {
+	case dealing:
+		dealtCards(m, gs)
+	case endOfGame, endOfRound:
+
+	}
+
+}
+
+func dealtCards(message Message, gs *GameState) {
 	var inv *Inventory
 	err := json.Unmarshal(message.Data, inv)
 	if err != nil {
 		fmt.Printf("Can't unmarhsall inventory %v", err)
-
-		return nil
 	}
 
-	return inv
+	gs.Inventory = inv
 }
 
-func endRound(message Message) {
+func endRound(message Message, gs *GameState) {
 	var end endRoundStuct
 	err := json.Unmarshal(message.Data, &end)
 	if err != nil {
@@ -57,15 +70,27 @@ func endRound(message Message) {
 
 	}
 	prettyPrintEndRound(end)
+
+	gs.Inventory = &Inventory{}
+	gs.Orderbook = newBook()
+	gs.Trades = make([]Trade, 0)
+	gs.Probabilities = make(map[Suit]float64)
+
 }
 
-func endGame(message Message) {
+func endGame(message Message, gs *GameState) {
 	var end endRoundStuct
 	err := json.Unmarshal(message.Data, &end)
 	if err != nil {
 		fmt.Printf("Can't unmarhsall round %v", err)
 
 	}
+
+	gs.Inventory = &Inventory{}
+	gs.Orderbook = newBook()
+	gs.Trades = make([]Trade, 0)
+	gs.Probabilities = make(map[Suit]float64)
+	gs.Balance = 0
 
 }
 

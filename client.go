@@ -81,28 +81,16 @@ func (c *Client) CloseWebSocket() {
 	}
 }
 
-func (c *Client) readMessages() {
+func (c *Client) ListenToMessages() {
 	for {
 		_, payload, err := c.Conn.ReadMessage()
 		if err != nil {
 			fmt.Printf("An error Occured %v", err)
 		} else {
+			// will call in main loop with routine and channels.
 			handleMessage(payload)
 		}
 	}
-}
-
-func handleMessage(payload []byte) {
-	var m Message
-	err := json.Unmarshal(payload, &m)
-	if err != nil {
-		fmt.Printf("Couldn't unmarshall paylaod %v", err)
-	}
-	switch m.Kind {
-	case dealing:
-
-	}
-
 }
 
 func (c *Client) PlaceOrder(order *Order) error {
