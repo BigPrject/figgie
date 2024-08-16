@@ -1,14 +1,21 @@
 package main
 
-var inventory *Inventory
+var gs *GameState
 
 func main() {
-	myInv := Inventory{
-		spades:   0,
-		clubs:    6,
-		diamonds: 4,
-		hearts:   0,
+	client := newClient(wsURL, resURL, playerID)
+	client.ConnectWebSocket()
+	gs = NewGameState()
+	messageChan := make(chan []byte)
+
+	go client.ListenToMessages(messageChan)
+
+	gs.Inventory = &Inventory{
+		Spades:   3,
+		Clubs:    5,
+		Diamonds: 2,
+		Hearts:   0,
 	}
 
-	myInv.complexPrior()
+	gs.Inventory.complexPrior()
 }

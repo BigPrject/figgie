@@ -21,10 +21,10 @@ var heartList [4]int
 var diamondList [4]int
 
 func startList(inv *Inventory) {
-	spadeList = [4]int{inv.spades, 0, 0, 0}
-	clubList = [4]int{inv.clubs, 0, 0, 0}
-	heartList = [4]int{inv.hearts, 0, 0, 0}
-	diamondList = [4]int{inv.diamonds, 0, 0, 0}
+	spadeList = [4]int{inv.Spades, 0, 0, 0}
+	clubList = [4]int{inv.Clubs, 0, 0, 0}
+	heartList = [4]int{inv.Hearts, 0, 0, 0}
+	diamondList = [4]int{inv.Diamonds, 0, 0, 0}
 }
 
 // card counting logic
