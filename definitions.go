@@ -23,7 +23,8 @@ type Message struct {
 
 // add seprate map of players on exchange, where each of them correspond p(i)
 var players map[string]int = map[string]int{"me": 0, "p2": 1, "p3": 2, "p4": 3}
-var Trades = make([]Trade, 0, 100)
+
+//var Trades = make([]Trade, 0, 100)
 
 const (
 	spades     Suit   = "spades"

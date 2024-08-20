@@ -1,0 +1,5 @@
+// run bayes
+//take in signals from fundbot and arb, preprocess them for sanity checks then go 
+// if valid bayes signal have a base case algo for order exec to run it.
+ 
+// make bayes its own routine?

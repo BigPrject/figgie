@@ -9,14 +9,27 @@ type GameState struct {
 	Probabilities map[Suit]float64
 	mutex         sync.RWMutex
 	Balance       int
+	*Fundbot
 }
 
 func NewGameState() *GameState {
 	return &GameState{
 		Inventory:     &Inventory{},
 		Orderbook:     newBook(),
-		Trades:        make([]Trade, 0),
+		Trades:        make([]Trade, 100),
 		Probabilities: make(map[Suit]float64),
 		Balance:       0,
 	}
 }
+
+/*
+ func listenToUpdates(gs *GameState, fd *Fundbot) {
+	for {
+		select {
+		case <-updateChannel:
+			fd.runFundamental(gs)
+		}
+	}
+}
+
+*/

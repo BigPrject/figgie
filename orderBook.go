@@ -42,16 +42,20 @@ func newBook() *Orderbook {
 	}
 }
 
-func processUpdate(update UpdateStruct) {
-	processTrade(update.Trade)
+func processUpdate(update UpdateStruct, gs *GameState) {
+	processTrade(update.Trade, gs)
 
 }
 
-func processTrade(s string) {
+func processTrade(s string, gs *GameState) {
 
 	var trade Trade
 
 	arr := strings.Split(s, ",")
+	if len(arr) != 4 {
+		fmt.Println("Invalid trade format:", s)
+		return
+	}
 
 	price, err := strconv.Atoi(arr[1])
 	if err != nil {
@@ -78,14 +82,13 @@ func processTrade(s string) {
 		Buyer:  arr[2],
 		Seller: arr[3],
 	}
-	appendTrade(trade)
+	appendTrade(trade, gs)
 }
 
-func appendTrade(newTrade Trade) {
-	tradesMu.Lock()
-	Trades = append(Trades, newTrade)
-	tradesMu.Unlock()
-	// Signal that an update has occurred
+func appendTrade(newTrade Trade, gs *GameState) {
+	gs.mutex.Lock()
+	gs.Trades = append(gs.Trades, newTrade)
+	gs.mutex.Unlock()
 	select {
 	case updateChannel <- struct{}{}:
 	default:

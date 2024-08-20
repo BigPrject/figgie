@@ -46,7 +46,12 @@ func handleMessage(payload []byte, gs *GameState) {
 	switch m.Kind {
 	case dealing:
 		dealtCards(m, gs)
-	case endOfGame, endOfRound:
+	case endOfGame:
+		endGame(m, gs)
+	case endOfRound:
+		endRound(m, gs)
+	case update:
+		updateMessage(m, gs)
 
 	}
 
@@ -94,7 +99,7 @@ func endGame(message Message, gs *GameState) {
 
 }
 
-func updateMessage(message Message) {
+func updateMessage(message Message, gs *GameState) {
 	var update UpdateStruct
 
 	err := json.Unmarshal(message.Data, &update)
@@ -102,5 +107,5 @@ func updateMessage(message Message) {
 		fmt.Printf("Can't process update data %v", err)
 	}
 
-	processUpdate(update)
+	processUpdate(update, gs)
 }

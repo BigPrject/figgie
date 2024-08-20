@@ -81,14 +81,14 @@ func (c *Client) CloseWebSocket() {
 	}
 }
 
-func (c *Client) ListenToMessages(messageChan chan<- []byte) {
+func (c *Client) ListenToMessages(gs *GameState) {
 	for {
 		_, payload, err := c.Conn.ReadMessage()
 		if err != nil {
 			fmt.Printf("An error Occured %v", err)
 		} else {
 			// will call in main loop with routine and channels.
-			messageChan <- payload
+			handleMessage(payload, gs)
 		}
 	}
 }
