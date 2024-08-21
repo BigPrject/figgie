@@ -64,7 +64,6 @@ func cardAlgo(List *[4]int, trade *Trade) {
 }
 
 // iterate through all list and get sums
-var sums []int
 
 func (fd *Fundbot) sumList() []int {
 	spadeSum := 0

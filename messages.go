@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+var invChannel = make(chan struct{}, 1)
+
 type endRoundStuct struct {
 	CommonSuit      string `json:"common_suit"`
 	GoalSuit        string `json:"goal_suit"`
@@ -32,8 +34,8 @@ type UpdateStruct struct {
 }
 
 type CardData struct {
-	Asks      []Qoute `json:"asks"`
-	Bids      []Qoute `json:"bids"`
+	Asks      []Quote `json:"asks"`
+	Bids      []Quote `json:"bids"`
 	LastTrade string  `json:"last_trade"`
 }
 
@@ -65,6 +67,10 @@ func dealtCards(message Message, gs *GameState) {
 	}
 
 	gs.Inventory = inv
+	select {
+	case invChannel <- struct{}{}:
+	default:
+	}
 }
 
 func endRound(message Message, gs *GameState) {
@@ -77,7 +83,7 @@ func endRound(message Message, gs *GameState) {
 	prettyPrintEndRound(end)
 
 	gs.Inventory = &Inventory{}
-	gs.Orderbook = newBook()
+	gs.Orderbook = NewOrderbook()
 	gs.Trades = make([]Trade, 0)
 	gs.Probabilities = make(map[Suit]float64)
 
@@ -92,7 +98,7 @@ func endGame(message Message, gs *GameState) {
 	}
 
 	gs.Inventory = &Inventory{}
-	gs.Orderbook = newBook()
+	gs.Orderbook = NewOrderbook()
 	gs.Trades = make([]Trade, 0)
 	gs.Probabilities = make(map[Suit]float64)
 	gs.Balance = 0

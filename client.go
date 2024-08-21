@@ -36,18 +36,18 @@ func (c *Client) registerTestNet(id string) error {
 
 	req, err := http.NewRequest("POST", c.APIURL+"/register_testnet", nil)
 	if err != nil {
-		return fmt.Errorf("Couldn't make post request")
+		return fmt.Errorf("couldn't make post request")
 	}
 	id = fmt.Sprintf("{%s}", id)
 	req.Header.Set("Playerid", id)
 
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		return fmt.Errorf("Couldn't send register request ")
+		return fmt.Errorf("couldn't send register request ")
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("Couldn't send register request ")
+		return fmt.Errorf("couldn't send register request ")
 	}
 	var respStruct apiResponse
 	json.Unmarshal(body, &respStruct)
@@ -87,7 +87,6 @@ func (c *Client) ListenToMessages(gs *GameState) {
 		if err != nil {
 			fmt.Printf("An error Occured %v", err)
 		} else {
-			// will call in main loop with routine and channels.
 			handleMessage(payload, gs)
 		}
 	}

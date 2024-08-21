@@ -39,20 +39,20 @@ func NewFundbot() *Fundbot {
 	}
 }
 
-func startFund(gs *GameState) {
+func startFund(gs *GameState, client *Client) {
 	bot := NewFundbot()
 
 	go func(gs *GameState, fd *Fundbot) {
 		for {
 			select {
-			case <-updateChannel:
-				bot.runFundamental(gs)
+			case <-tradeChannel:
+				fd.runFundamental(gs, client)
 			}
 		}
 	}(gs, bot)
 }
 
-func (fd *Fundbot) runFundamental(gs *GameState) {
+func (fd *Fundbot) runFundamental(gs *GameState, client *Client) {
 	//Optimize later by making inventory be a map.
 	hand := map[Suit]int{spades: fd.inv.Spades,
 		clubs:    fd.inv.Clubs,
@@ -62,9 +62,10 @@ func (fd *Fundbot) runFundamental(gs *GameState) {
 	deckDistrbution := fd.calcMultinomal(sums)
 
 	for suit, amount := range hand {
-		//expBuy := fd.expectedBuy(suit, amount, deckDistrbution[:])
-		//expSell := fd.expectedSell(suit, amount, deckDistrbution[:])
-
+		expBuy := fd.expectedBuy(suit, amount, deckDistrbution[:])
+		expSell := fd.expectedSell(suit, amount, deckDistrbution[:])
+		sendOrder(suit, "buy", expBuy, client)
+		sendOrder(suit, "buy", expSell, client)
 		//send to order exec.
 	}
 

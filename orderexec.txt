@@ -2,4 +2,6 @@
 //take in signals from fundbot and arb, preprocess them for sanity checks then go 
 // if valid bayes signal have a base case algo for order exec to run it.
  
-// make bayes its own routine?
+// make bayes its own routine - send its own signals
+// have bayes bot listen on inventoryChannel; get probs,
+// run calcpropr if > .50 spin off unique routine that commits to getting goal suite

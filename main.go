@@ -8,8 +8,9 @@ func main() {
 	// evntaully just have one function, start bot, that calls that go routine...
 	go client.ListenToMessages(gs)
 
+	card, prob := gs.Inventory.complexPrior()
 	//Run bayes then if no > 50% then start fund bot.
-	go startFund(gs)
+	go startFund(gs, client)
 
 	gs.Inventory = &Inventory{
 		Spades:   3,
@@ -18,5 +19,4 @@ func main() {
 		Hearts:   0,
 	}
 
-	gs.Inventory.complexPrior()
 }

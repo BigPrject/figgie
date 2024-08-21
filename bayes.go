@@ -63,7 +63,7 @@ func (inv *Inventory) calcPrior() {
 	}
 }
 
-func (inv *Inventory) complexPrior() {
+func (inv *Inventory) complexPrior() (Suit, float32) {
 	cards := map[Suit]int{
 		spades:   inv.Spades,
 		clubs:    inv.Clubs,
@@ -110,10 +110,17 @@ func (inv *Inventory) complexPrior() {
 
 	}
 	fmt.Println("\nMAX PROBABILITES")
+	max := float32(0)
+	var maxCard Suit
 	for card, prob := range complexProbs {
 		fmt.Printf("%s had probability of %.2f\n", card, prob)
-	}
 
+		if prob > max {
+			max = prob
+			maxCard = card
+		}
+	}
+	return maxCard, max
 	// Implement bayes that condsiders all other card in hand
 
 }

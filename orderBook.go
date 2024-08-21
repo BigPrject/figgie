@@ -9,42 +9,56 @@ import (
 
 var tradesMu sync.Mutex
 
-var updateChannel = make(chan struct{}, 1)
+var tradeChannel = make(chan struct{}, 1)
 
-type Qoute struct {
+type Quote struct {
 	Price  int    `json:"price"`
-	Qouter string `json:"player_name"`
+	Quoter string `json:"player_name"`
+}
+
+type Book struct {
+	Ask       Quote
+	Bid       Quote
+	LastPrice int
 }
 
 type Orderbook struct {
-	ask Qoute
-	bid Qoute
-
-	lastPrice int
+	Spadebook   *Book
+	Clubbook    *Book
+	Heartbook   *Book
+	Diamondbook *Book
 }
 
-func (book *Orderbook) newlastPrice(p int) {
-	book.lastPrice = p
+func (book *Book) UpdateLastPrice(p int) {
+	book.LastPrice = p
 }
 
-func newBook() *Orderbook {
-
-	return &Orderbook{
-		ask: Qoute{
+func NewBook() *Book {
+	return &Book{
+		Ask: Quote{
 			Price:  0,
-			Qouter: "",
+			Quoter: "",
 		},
-		bid: Qoute{
+		Bid: Quote{
 			Price:  99,
-			Qouter: "",
+			Quoter: "",
 		},
-		lastPrice: 0,
+		LastPrice: 0,
+	}
+}
+
+func NewOrderbook() *Orderbook {
+	return &Orderbook{
+		Spadebook:   NewBook(),
+		Clubbook:    NewBook(),
+		Heartbook:   NewBook(),
+		Diamondbook: NewBook(),
 	}
 }
 
 func processUpdate(update UpdateStruct, gs *GameState) {
 	processTrade(update.Trade, gs)
-
+	// finish out everything else
 }
 
 func processTrade(s string, gs *GameState) {
@@ -82,15 +96,17 @@ func processTrade(s string, gs *GameState) {
 		Buyer:  arr[2],
 		Seller: arr[3],
 	}
-	appendTrade(trade, gs)
+	appendTrade(&trade, gs)
 }
 
-func appendTrade(newTrade Trade, gs *GameState) {
+// optimize here
+
+func appendTrade(newTrade *Trade, gs *GameState) {
 	gs.mutex.Lock()
-	gs.Trades = append(gs.Trades, newTrade)
+	gs.Trades = append(gs.Trades, *newTrade)
 	gs.mutex.Unlock()
 	select {
-	case updateChannel <- struct{}{}:
+	case tradeChannel <- struct{}{}:
 	default:
 	}
 }

@@ -9,13 +9,12 @@ type GameState struct {
 	Probabilities map[Suit]float64
 	mutex         sync.RWMutex
 	Balance       int
-	*Fundbot
 }
 
 func NewGameState() *GameState {
 	return &GameState{
 		Inventory:     &Inventory{},
-		Orderbook:     newBook(),
+		Orderbook:     NewOrderbook(),
 		Trades:        make([]Trade, 100),
 		Probabilities: make(map[Suit]float64),
 		Balance:       0,

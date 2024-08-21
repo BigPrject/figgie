@@ -1,10 +1,10 @@
 package main
 
 type Inventory struct {
-	Spades   int `json: "spades"`
-	Clubs    int `json: "clubs"`
-	Diamonds int `json: "diamonds"`
-	Hearts   int `json: "hearts"`
+	Spades   int `json:"spades"`
+	Clubs    int `json:"clubs"`
+	Diamonds int `json:"diamonds"`
+	Hearts   int `json:"hearts"`
 }
 
 func (inv *Inventory) update(s Suit, add bool) {
