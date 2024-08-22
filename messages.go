@@ -46,15 +46,14 @@ func handleMessage(payload []byte, gs *GameState) {
 		fmt.Printf("Couldn't unmarshall paylaod %v", err)
 	}
 	switch m.Kind {
+	case update:
+		updateMessage(m, gs)
 	case dealing:
 		dealtCards(m, gs)
 	case endOfGame:
 		endGame(m, gs)
 	case endOfRound:
 		endRound(m, gs)
-	case update:
-		updateMessage(m, gs)
-
 	}
 
 }

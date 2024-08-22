@@ -57,8 +57,95 @@ func NewOrderbook() *Orderbook {
 }
 
 func processUpdate(update UpdateStruct, gs *GameState) {
-	processTrade(update.Trade, gs)
-	// finish out everything else
+
+	go processTrade(update.Trade, gs)
+
+	go makeBook(update, gs)
+}
+
+func makeBook(update UpdateStruct, gs *GameState) {
+	go findBBO(update.Spades, gs, "spades")
+	go findBBO(update.Clubs, gs, "clubs")
+	go findBBO(update.Hearts, gs, "hearts")
+	go findBBO(update.Diamonds, gs, "diamonds")
+	// add waitgroup
+}
+
+func findBBO(cd CardData, gs *GameState, card string) {
+	// should probably make a getter func for the prices...
+	// setting the qouter field is probably uncessary for me
+	switch card {
+	case "spades":
+		for _, Quote := range cd.Asks {
+			if Quote.Price < gs.Orderbook.Spadebook.Ask.Price {
+				gs.Orderbook.Spadebook.Ask.Price = Quote.Price
+				gs.Orderbook.Spadebook.Ask.Quoter = Quote.Quoter
+			}
+
+		}
+		for _, Quote := range cd.Bids {
+			if Quote.Price < gs.Orderbook.Spadebook.Ask.Price {
+				gs.Orderbook.Spadebook.Bid.Price = Quote.Price
+				gs.Orderbook.Spadebook.Bid.Quoter = Quote.Quoter
+			}
+
+		}
+
+	case "clubs":
+		for _, Quote := range cd.Asks {
+			if Quote.Price < gs.Orderbook.Clubbook.Ask.Price {
+				gs.Orderbook.Clubbook.Ask.Price = Quote.Price
+				gs.Orderbook.Clubbook.Ask.Quoter = Quote.Quoter
+
+			}
+
+		}
+		for _, Quote := range cd.Bids {
+			if Quote.Price > gs.Orderbook.Clubbook.Bid.Price {
+				gs.Orderbook.Clubbook.Bid.Price = Quote.Price
+				gs.Orderbook.Clubbook.Bid.Quoter = Quote.Quoter
+
+			}
+
+		}
+
+	case "hearts":
+		for _, Quote := range cd.Asks {
+			if Quote.Price < gs.Orderbook.Heartbook.Ask.Price {
+				gs.Orderbook.Heartbook.Ask.Price = Quote.Price
+				gs.Orderbook.Heartbook.Ask.Quoter = Quote.Quoter
+
+			}
+
+		}
+		for _, Quote := range cd.Bids {
+			if Quote.Price > gs.Orderbook.Heartbook.Bid.Price {
+				gs.Orderbook.Heartbook.Bid.Price = Quote.Price
+				gs.Orderbook.Heartbook.Bid.Quoter = Quote.Quoter
+
+			}
+
+		}
+
+	case "diamonds":
+		for _, Quote := range cd.Asks {
+			if Quote.Price < gs.Orderbook.Heartbook.Ask.Price {
+				gs.Orderbook.Diamondbook.Ask.Price = Quote.Price
+				gs.Orderbook.Diamondbook.Ask.Quoter = Quote.Quoter
+
+			}
+
+		}
+		for _, Quote := range cd.Bids {
+			if Quote.Price > gs.Orderbook.Diamondbook.Bid.Price {
+				gs.Orderbook.Diamondbook.Bid.Price = Quote.Price
+				gs.Orderbook.Diamondbook.Bid.Quoter = Quote.Quoter
+			}
+
+		}
+
+	}
+
 }
 
 func processTrade(s string, gs *GameState) {

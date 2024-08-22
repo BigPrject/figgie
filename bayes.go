@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 const (
 	cards              = 40
@@ -122,5 +125,16 @@ func (inv *Inventory) complexPrior() (Suit, float32) {
 	}
 	return maxCard, max
 	// Implement bayes that condsiders all other card in hand
+
+}
+
+// refine this later
+func bayesPrice(prior float32) int {
+	maxPay := 22.0
+	// stepness of curve
+	k := 10.0
+	mid := 0.5
+	// add a sum that accounts for the amount I have in my hand, more I have in my hand, more I should be willing to pay.
+	return int(maxPay / (1 + math.Exp(-k*(float64(prior)-mid))))
 
 }
