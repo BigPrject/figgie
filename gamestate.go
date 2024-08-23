@@ -7,7 +7,7 @@ type GameState struct {
 	Orderbook     *Orderbook
 	Trades        []Trade
 	Probabilities map[Suit]float64
-	mutex         sync.RWMutex
+	rwMutex       sync.RWMutex
 	Balance       int
 }
 

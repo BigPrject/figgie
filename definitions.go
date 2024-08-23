@@ -2,6 +2,10 @@ package main
 
 import "encoding/json"
 
+// Channels
+var tradeChannel = make(chan struct{}, 1)
+var bookChannel = make(chan struct{}, 1)
+
 type Suit string
 
 type Order struct {

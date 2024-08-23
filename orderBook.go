@@ -9,8 +9,6 @@ import (
 
 var tradesMu sync.Mutex
 
-var tradeChannel = make(chan struct{}, 1)
-
 type Quote struct {
 	Price  int    `json:"price"`
 	Quoter string `json:"player_name"`
@@ -57,29 +55,46 @@ func NewOrderbook() *Orderbook {
 }
 
 func processUpdate(update UpdateStruct, gs *GameState) {
+	var wg sync.WaitGroup
+	wg.Add(5)
 
-	go processTrade(update.Trade, gs)
+	go func() {
+		defer wg.Done()
+		processTrade(update.Trade, gs)
+	}()
+	go func() {
+		defer wg.Done()
+		findBBO(update.Spades, gs, "spades")
+	}()
+	go func() {
+		defer wg.Done()
+		findBBO(update.Clubs, gs, "clubs")
+	}()
+	go func() {
+		defer wg.Done()
+		findBBO(update.Hearts, gs, "hearts")
+	}()
+	go func() {
+		defer wg.Done()
+		findBBO(update.Diamonds, gs, "diamonds")
+	}()
+	wg.Wait()
 
-	go makeBook(update, gs)
-}
-
-func makeBook(update UpdateStruct, gs *GameState) {
-	go findBBO(update.Spades, gs, "spades")
-	go findBBO(update.Clubs, gs, "clubs")
-	go findBBO(update.Hearts, gs, "hearts")
-	go findBBO(update.Diamonds, gs, "diamonds")
-	// add waitgroup
 }
 
 func findBBO(cd CardData, gs *GameState, card string) {
 	// should probably make a getter func for the prices...
 	// setting the qouter field is probably uncessary for me
+	gs.rwMutex.Lock()
+	defer gs.rwMutex.Unlock()
+	isBBO := false
 	switch card {
 	case "spades":
 		for _, Quote := range cd.Asks {
 			if Quote.Price < gs.Orderbook.Spadebook.Ask.Price {
 				gs.Orderbook.Spadebook.Ask.Price = Quote.Price
 				gs.Orderbook.Spadebook.Ask.Quoter = Quote.Quoter
+				isBBO = true
 			}
 
 		}
@@ -87,6 +102,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 			if Quote.Price < gs.Orderbook.Spadebook.Ask.Price {
 				gs.Orderbook.Spadebook.Bid.Price = Quote.Price
 				gs.Orderbook.Spadebook.Bid.Quoter = Quote.Quoter
+				isBBO = true
 			}
 
 		}
@@ -96,7 +112,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 			if Quote.Price < gs.Orderbook.Clubbook.Ask.Price {
 				gs.Orderbook.Clubbook.Ask.Price = Quote.Price
 				gs.Orderbook.Clubbook.Ask.Quoter = Quote.Quoter
-
+				isBBO = true
 			}
 
 		}
@@ -104,7 +120,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 			if Quote.Price > gs.Orderbook.Clubbook.Bid.Price {
 				gs.Orderbook.Clubbook.Bid.Price = Quote.Price
 				gs.Orderbook.Clubbook.Bid.Quoter = Quote.Quoter
-
+				isBBO = true
 			}
 
 		}
@@ -114,7 +130,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 			if Quote.Price < gs.Orderbook.Heartbook.Ask.Price {
 				gs.Orderbook.Heartbook.Ask.Price = Quote.Price
 				gs.Orderbook.Heartbook.Ask.Quoter = Quote.Quoter
-
+				isBBO = true
 			}
 
 		}
@@ -122,7 +138,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 			if Quote.Price > gs.Orderbook.Heartbook.Bid.Price {
 				gs.Orderbook.Heartbook.Bid.Price = Quote.Price
 				gs.Orderbook.Heartbook.Bid.Quoter = Quote.Quoter
-
+				isBBO = true
 			}
 
 		}
@@ -132,7 +148,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 			if Quote.Price < gs.Orderbook.Heartbook.Ask.Price {
 				gs.Orderbook.Diamondbook.Ask.Price = Quote.Price
 				gs.Orderbook.Diamondbook.Ask.Quoter = Quote.Quoter
-
+				isBBO = true
 			}
 
 		}
@@ -140,17 +156,70 @@ func findBBO(cd CardData, gs *GameState, card string) {
 			if Quote.Price > gs.Orderbook.Diamondbook.Bid.Price {
 				gs.Orderbook.Diamondbook.Bid.Price = Quote.Price
 				gs.Orderbook.Diamondbook.Bid.Quoter = Quote.Quoter
+				isBBO = true
 			}
 
 		}
 
 	}
 
+	if isBBO {
+		select {
+		case bookChannel <- struct{}{}:
+		default:
+		}
+	}
+
+}
+
+func clearBook(suit Suit, gs *GameState, price int) {
+	//reset every Orderbook execpt suit of trade
+	//if time simply by making a map and iterating through and reseting.
+	gs.rwMutex.Lock()
+	defer gs.rwMutex.Unlock()
+	switch suit {
+	case spades:
+		gs.Orderbook.Clubbook.Ask.Price = 0
+		gs.Orderbook.Diamondbook.Ask.Price = 0
+		gs.Orderbook.Heartbook.Ask.Price = 0
+		gs.Orderbook.Clubbook.Bid.Price = 0
+		gs.Orderbook.Diamondbook.Bid.Price = 0
+		gs.Orderbook.Heartbook.Bid.Price = 0
+		gs.Orderbook.Spadebook.LastPrice = price
+	case clubs:
+		gs.Orderbook.Spadebook.Ask.Price = 0
+		gs.Orderbook.Diamondbook.Ask.Price = 0
+		gs.Orderbook.Heartbook.Ask.Price = 0
+		gs.Orderbook.Spadebook.Bid.Price = 0
+		gs.Orderbook.Diamondbook.Bid.Price = 0
+		gs.Orderbook.Heartbook.Bid.Price = 0
+		gs.Orderbook.Clubbook.LastPrice = price
+	case diamonds:
+		gs.Orderbook.Spadebook.Ask.Price = 0
+		gs.Orderbook.Clubbook.Ask.Price = 0
+		gs.Orderbook.Heartbook.Ask.Price = 0
+		gs.Orderbook.Spadebook.Bid.Price = 0
+		gs.Orderbook.Clubbook.Bid.Price = 0
+		gs.Orderbook.Heartbook.Bid.Price = 0
+		gs.Orderbook.Diamondbook.LastPrice = price
+	case hearts:
+		gs.Orderbook.Spadebook.Ask.Price = 0
+		gs.Orderbook.Clubbook.Ask.Price = 0
+		gs.Orderbook.Diamondbook.Ask.Price = 0
+		gs.Orderbook.Spadebook.Bid.Price = 0
+		gs.Orderbook.Clubbook.Bid.Price = 0
+		gs.Orderbook.Diamondbook.Bid.Price = 0
+		gs.Orderbook.Heartbook.LastPrice = price
+	}
 }
 
 func processTrade(s string, gs *GameState) {
 
 	var trade Trade
+	//check if valid trade
+	if s == " " {
+		return
+	}
 
 	arr := strings.Split(s, ",")
 	if len(arr) != 4 {
@@ -177,6 +246,8 @@ func processTrade(s string, gs *GameState) {
 		fmt.Println("Invalid card suit")
 	}
 
+	clearBook(suit, gs, price)
+
 	trade = Trade{
 		Card:   suit,
 		Price:  price,
@@ -189,9 +260,9 @@ func processTrade(s string, gs *GameState) {
 // optimize here
 
 func appendTrade(newTrade *Trade, gs *GameState) {
-	gs.mutex.Lock()
+	gs.rwMutex.Lock()
 	gs.Trades = append(gs.Trades, *newTrade)
-	gs.mutex.Unlock()
+	gs.rwMutex.Unlock()
 	select {
 	case tradeChannel <- struct{}{}:
 	default:

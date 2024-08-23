@@ -2,6 +2,16 @@ package main
 
 import "fmt"
 
+func listenOrder(gs *GameState) {
+	for {
+		select {
+		case <-bookChannel:
+			// do action when update on bbo.
+		}
+	}
+
+}
+
 func sendOrder(suit Suit, direction string, amount int, client *Client) {
 	var card string
 	switch suit {
@@ -15,7 +25,6 @@ func sendOrder(suit Suit, direction string, amount int, client *Client) {
 		card = "diamond"
 
 	}
-
 	// impelent sanity check here, i.e max price I'd be willing to sell at etc etc,
 	order := Order{Card: card, Price: amount, Direction: direction}
 

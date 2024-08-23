@@ -41,15 +41,12 @@ func NewFundbot() *Fundbot {
 
 func startFund(gs *GameState, client *Client) {
 	bot := NewFundbot()
-
-	go func(gs *GameState, fd *Fundbot) {
-		for {
-			select {
-			case <-tradeChannel:
-				fd.runFundamental(gs, client)
-			}
+	for {
+		select {
+		case <-tradeChannel:
+			bot.runFundamental(gs, client)
 		}
-	}(gs, bot)
+	}
 }
 
 func (fd *Fundbot) runFundamental(gs *GameState, client *Client) {
