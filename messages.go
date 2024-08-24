@@ -5,8 +5,9 @@ import (
 	"fmt"
 )
 
-var invChannel = make(chan struct{}, 1)
-
+type endGameStruct struct {
+	PlayerPoints []playerPoints `json:"player_points"`
+}
 type endRoundStuct struct {
 	CommonSuit      string `json:"common_suit"`
 	GoalSuit        string `json:"goal_suit"`
@@ -64,8 +65,8 @@ func dealtCards(message Message, gs *GameState) {
 	if err != nil {
 		fmt.Printf("Can't unmarhsall inventory %v", err)
 	}
-
 	gs.Inventory = inv
+	gs.Balance -= 50
 	select {
 	case invChannel <- struct{}{}:
 	default:
@@ -84,23 +85,23 @@ func endRound(message Message, gs *GameState) {
 	gs.Inventory = &Inventory{}
 	gs.Orderbook = NewOrderbook()
 	gs.Trades = make([]Trade, 0)
-	gs.Probabilities = make(map[Suit]float64)
 
 }
 
 func endGame(message Message, gs *GameState) {
-	var end endRoundStuct
+	var end endGameStruct
 	err := json.Unmarshal(message.Data, &end)
 	if err != nil {
 		fmt.Printf("Can't unmarhsall round %v", err)
 
 	}
+	prettyPrintEndGame(end)
 
+	//reset my gamestate, shorten it to newgamestate later..
 	gs.Inventory = &Inventory{}
 	gs.Orderbook = NewOrderbook()
-	gs.Trades = make([]Trade, 0)
-	gs.Probabilities = make(map[Suit]float64)
-	gs.Balance = 0
+	gs.Trades = make([]Trade, 100)
+	gs.Balance = 350
 
 }
 

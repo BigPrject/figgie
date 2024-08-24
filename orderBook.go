@@ -34,11 +34,11 @@ func (book *Book) UpdateLastPrice(p int) {
 func NewBook() *Book {
 	return &Book{
 		Ask: Quote{
-			Price:  0,
+			Price:  100,
 			Quoter: "",
 		},
 		Bid: Quote{
-			Price:  99,
+			Price:  0,
 			Quoter: "",
 		},
 		LastPrice: 0,
@@ -82,9 +82,17 @@ func processUpdate(update UpdateStruct, gs *GameState) {
 
 }
 
+type bboDescription struct {
+	book      *Book
+	quote     *Quote
+	direction string
+}
+
 func findBBO(cd CardData, gs *GameState, card string) {
 	// should probably make a getter func for the prices...
 	// setting the qouter field is probably uncessary for me
+	// I should ignore
+	var bboDesc bboDescription
 	gs.rwMutex.Lock()
 	defer gs.rwMutex.Unlock()
 	isBBO := false
@@ -95,6 +103,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Spadebook.Ask.Price = Quote.Price
 				gs.Orderbook.Spadebook.Ask.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Spadebook, quote: &Quote, direction: "ask"}
 			}
 
 		}
@@ -103,6 +112,8 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Spadebook.Bid.Price = Quote.Price
 				gs.Orderbook.Spadebook.Bid.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Spadebook, quote: &Quote, direction: "bid"}
+
 			}
 
 		}
@@ -113,6 +124,8 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Clubbook.Ask.Price = Quote.Price
 				gs.Orderbook.Clubbook.Ask.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Clubbook, quote: &Quote, direction: "ask"}
+
 			}
 
 		}
@@ -121,6 +134,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Clubbook.Bid.Price = Quote.Price
 				gs.Orderbook.Clubbook.Bid.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Clubbook, quote: &Quote, direction: "bid"}
 			}
 
 		}
@@ -131,6 +145,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Heartbook.Ask.Price = Quote.Price
 				gs.Orderbook.Heartbook.Ask.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Heartbook, quote: &Quote, direction: "ask"}
 			}
 
 		}
@@ -139,6 +154,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Heartbook.Bid.Price = Quote.Price
 				gs.Orderbook.Heartbook.Bid.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Heartbook, quote: &Quote, direction: "bid"}
 			}
 
 		}
@@ -149,23 +165,29 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Diamondbook.Ask.Price = Quote.Price
 				gs.Orderbook.Diamondbook.Ask.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Diamondbook, quote: &Quote, direction: "ask"}
+
 			}
 
 		}
 		for _, Quote := range cd.Bids {
-			if Quote.Price > gs.Orderbook.Diamondbook.Bid.Price {
+			if Quote.Quoter == myplayerName {
+				continue
+			} else if Quote.Price > gs.Orderbook.Diamondbook.Bid.Price {
 				gs.Orderbook.Diamondbook.Bid.Price = Quote.Price
 				gs.Orderbook.Diamondbook.Bid.Quoter = Quote.Quoter
 				isBBO = true
+				bboDesc = bboDescription{book: gs.Orderbook.Diamondbook, quote: &Quote, direction: "bid"}
+
 			}
 
 		}
 
 	}
-
+	// could optimize for bbo ask and buy...
 	if isBBO {
 		select {
-		case bookChannel <- struct{}{}:
+		case bookChannel <- bboDesc:
 		default:
 		}
 	}
@@ -217,7 +239,7 @@ func processTrade(s string, gs *GameState) {
 
 	var trade Trade
 	//check if valid trade
-	if s == " " {
+	if s == "" {
 		return
 	}
 
@@ -254,7 +276,13 @@ func processTrade(s string, gs *GameState) {
 		Buyer:  arr[2],
 		Seller: arr[3],
 	}
+	if trade.Buyer == myplayerName {
+		gs.Inventory.update(trade.Card, true)
+	} else if trade.Seller == myplayerName {
+		gs.Inventory.update(trade.Card, false)
+	}
 	appendTrade(&trade, gs)
+
 }
 
 // optimize here

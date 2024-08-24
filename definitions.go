@@ -4,7 +4,9 @@ import "encoding/json"
 
 // Channels
 var tradeChannel = make(chan struct{}, 1)
-var bookChannel = make(chan struct{}, 1)
+var bookChannel = make(chan bboDescription, 1)
+var invChannel = make(chan struct{}, 1)
+var bboChannel = make(chan struct{}, 1)
 
 type Suit string
 
@@ -42,10 +44,10 @@ const (
 )
 
 const (
-	wsURL      = "ws://testnet-ws.figgiewars.com"
-	resURL     = "http://testnet.figgiewars.com"
-	playerID   = "LebronJames"
-	playerName = "bellamy"
+	wsURL        = "ws://testnet-ws.figgiewars.com"
+	resURL       = "http://testnet.figgiewars.com"
+	playerID     = "LebronJames"
+	myplayerName = "bellamy"
 )
 
 // Helpers

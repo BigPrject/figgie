@@ -6,3 +6,16 @@
 // make bayes its own routine - send its own signals
 // have bayes bot listen on inventoryChannel; get probs,
 // run calcpropr if > .50 spin off unique routine that commits to getting goal suite
+
+//I can cross the spread if it is 1 
+Willingness to pay function
+// willingness to pay should incrase as the more cards I have in my hand?
+// simillar to the traders in a strange land paper...
+
+\frac{MAXAMOUNTTOPAY}{\left(1+e^{\left(-k\left(x-m\right)\right)}\right)}
+
+22/
+
+// If I send a order > thatn there the limit will be hit... I should also gaurd agianst sending a price too high...
+
+// my first orders should be equal to last price then

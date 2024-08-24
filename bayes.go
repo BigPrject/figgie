@@ -18,20 +18,6 @@ const (
 	totalHands = 847660528
 )
 
-func combination(n, k int) int {
-	if k > n {
-		return 0
-	}
-	if k > n/2 {
-		k = n - k
-	}
-	comb := 1
-	for i := 1; i <= k; i++ {
-		comb = (n - k + i) * comb / i
-	}
-	return comb
-}
-
 func (inv *Inventory) calcPrior() {
 	cards := map[Suit]int{
 		spades:   inv.Spades,
@@ -136,5 +122,31 @@ func bayesPrice(prior float32) int {
 	mid := 0.5
 	// add a sum that accounts for the amount I have in my hand, more I have in my hand, more I should be willing to pay.
 	return int(maxPay / (1 + math.Exp(-k*(float64(prior)-mid))))
+
+}
+
+func bayesBot(card Suit, prob float32) {
+	goalSuit := card.getGoalSuit()
+	for {
+		//listens on order and runs bayes bot
+	}
+}
+
+func combination(n, k int) int {
+	if k > n {
+		return 0
+	}
+	if k > n/2 {
+		k = n - k
+	}
+	comb := 1
+	for i := 1; i <= k; i++ {
+		comb = (n - k + i) * comb / i
+	}
+	return comb
+}
+
+// call this when bayes calc is valid , this should off all other suit' and gain goal suit
+func bayesAlgo(card Suit, gs *GameState) {
 
 }

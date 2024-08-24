@@ -123,7 +123,7 @@ func (c *Client) PlaceOrder(order *Order) error {
 		return fmt.Errorf("couldn't unmarshall error")
 	}
 	if respStruct.Status == "SUCCESS" {
-		fmt.Println("Order placed successfully:", respStruct.Message)
+		fmt.Println("Order placed successfully:")
 
 	} else {
 		return fmt.Errorf(respStruct.Status)

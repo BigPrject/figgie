@@ -3,21 +3,19 @@ package main
 import "sync"
 
 type GameState struct {
-	Inventory     *Inventory
-	Orderbook     *Orderbook
-	Trades        []Trade
-	Probabilities map[Suit]float64
-	rwMutex       sync.RWMutex
-	Balance       int
+	Inventory *Inventory
+	Orderbook *Orderbook
+	Trades    []Trade
+	rwMutex   sync.RWMutex
+	Balance   int
 }
 
 func NewGameState() *GameState {
 	return &GameState{
-		Inventory:     &Inventory{},
-		Orderbook:     NewOrderbook(),
-		Trades:        make([]Trade, 100),
-		Probabilities: make(map[Suit]float64),
-		Balance:       0,
+		Inventory: &Inventory{},
+		Orderbook: NewOrderbook(),
+		Trades:    make([]Trade, 100),
+		Balance:   350,
 	}
 }
 
