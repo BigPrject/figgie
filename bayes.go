@@ -114,6 +114,44 @@ func (inv *Inventory) complexPrior() (Suit, float32) {
 
 }
 
+func (inv *Inventory) englandCalc() {
+	cards := map[Suit]int{
+		spades:   inv.Spades,
+		clubs:    inv.Clubs,
+		diamonds: inv.Diamonds,
+		hearts:   inv.Hearts,
+	}
+
+	numWaysSpadesCommonDeckA := combination(12, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Hearts) * combination(8, inv.Diamonds)
+	numWaysSpadesCommonDeckB := combination(12, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Hearts) * combination(10, inv.Diamonds)
+	numWaysSpadesCommonDeckC := combination(12, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Hearts) * combination(10, inv.Diamonds)
+	numWaysClubCommonDeckA := combination(12, inv.Clubs) * combination(10, inv.Spades) * combination(10, inv.Hearts) * combination(8, inv.Diamonds)
+	numWaysClubCommonDeckB := combination(12, inv.Clubs) * combination(10, inv.Spades) * combination(8, inv.Hearts) * combination(10, inv.Diamonds)
+	numWaysClubCommonDeckC := combination(12, inv.Clubs) * combination(8, inv.Spades) * combination(10, inv.Hearts) * combination(10, inv.Diamonds)
+	numWaysHeartCommonDeckA := combination(12, inv.Hearts) * combination(10, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Diamonds)
+	numWaysHeartCommonDeckB := combination(12, inv.Hearts) * combination(10, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Diamonds)
+	numWaysHeartCommonDeckC := combination(12, inv.Hearts) * combination(8, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Diamonds)
+	numWaysDiamondCommonDeckA := combination(12, inv.Diamonds) * combination(10, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Hearts)
+	numWaysDiamondCommonDeckB := combination(12, inv.Diamonds) * combination(10, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Hearts)
+	numWaysDiamondCommonDeckC := combination(12, inv.Diamonds) * combination(8, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Hearts)
+
+	for card, _ := range cards {
+		var totalWays float32
+		var probBgivenA float32
+		var bayescalc float32
+		switch card {
+		case spades:
+			totalWays := (numWaysSpadesCommonDeckA * 1 / 3) + (numWaysSpadesCommonDeckB * 1 / 3) + (numWaysSpadesCommonDeckC * 1 / 3)
+			probBgivenA := float32(totalWays / totalHands)
+			probBnotA := (float32(1 / 3 * (numWaysClubCommonDeckA + numWaysClubCommonDeckB + numWaysClubCommonDeckC + numWaysHeartCommonDeckA + numWaysHeartCommonDeckB + numWaysHeartCommonDeckC + numWaysDiamondCommonDeckA + numWaysDiamondCommonDeckB + numWaysDiamondCommonDeckC))) / totalHands
+			probB := (probBgivenA * initProb) + (probBnotA * float32(1-initProb))
+			bayescalc := (float32(probBgivenA) * (initProb) / probB)
+
+		}
+
+	}
+}
+
 // refine this later
 func bayesPrice(prior float32) int {
 	maxPay := 22.0
@@ -127,6 +165,7 @@ func bayesPrice(prior float32) int {
 
 func bayesBot(card Suit, prob float32) {
 	goalSuit := card.getGoalSuit()
+	goalSuit.getGoalSuit()
 	for {
 		//listens on order and runs bayes bot
 	}
