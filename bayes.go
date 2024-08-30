@@ -18,7 +18,9 @@ const (
 	totalHands = 847660528
 )
 
-func (inv *Inventory) calcPrior() {
+func (inv *Inventory) calcPrior() (Suit, float32) {
+	max := float32(0)
+	var maxCard Suit
 	cards := map[Suit]int{
 		spades:   inv.Spades,
 		clubs:    inv.Clubs,
@@ -47,9 +49,14 @@ func (inv *Inventory) calcPrior() {
 		probs[card] = bayesCalc
 	}
 
-	for suit, prob := range probs {
-		fmt.Printf("Suit %s, probability %.2f\n", suit, prob)
+	for card, prob := range probs {
+		if prob > max {
+			max = prob
+			maxCard = card
+		}
+
 	}
+	return maxCard, max
 }
 
 func (inv *Inventory) complexPrior() (Suit, float32) {
@@ -72,7 +79,7 @@ func (inv *Inventory) complexPrior() (Suit, float32) {
 			otherCards[spades] = inv.Spades
 			otherCards[clubs] = inv.Clubs
 		}
-		for otherCard, count := range otherCards {
+		for _, count := range otherCards {
 			restOfHand := hand - amount - count
 
 			combCardCommonOtherCard := float32(combination(12, amount) * combination(10, count) * combination(18, restOfHand))
@@ -93,16 +100,16 @@ func (inv *Inventory) complexPrior() (Suit, float32) {
 				complexProbs[card] = max(bayesComplex, complexProbs[card])
 			}
 
-			fmt.Printf("Probability of %s given %d of %s is %.2f\n", card, count, otherCard, bayesComplex)
+			//fmt.Printf("Probability of %s given %d of %s is %.2f\n", card, count, otherCard, bayesComplex)
 
 		}
 
 	}
-	fmt.Println("\nMAX PROBABILITES")
+	//fmt.Println("\nMAX PROBABILITES")
 	max := float32(0)
 	var maxCard Suit
 	for card, prob := range complexProbs {
-		fmt.Printf("%s had probability of %.2f\n", card, prob)
+		//fmt.Printf("%s had probability of %.2f\n", card, prob)
 
 		if prob > max {
 			max = prob
@@ -114,42 +121,75 @@ func (inv *Inventory) complexPrior() (Suit, float32) {
 
 }
 
-func (inv *Inventory) englandCalc() {
+func (inv *Inventory) englandCalc() (Suit, float32) {
+	max := float32(0)
+	var maxCard Suit
 	cards := map[Suit]int{
 		spades:   inv.Spades,
 		clubs:    inv.Clubs,
 		diamonds: inv.Diamonds,
 		hearts:   inv.Hearts,
 	}
+	probabilities := make(map[Suit]float32)
+	// can't divide by total hands, don't sume to 1 have to divide by some of all scenarios
 
 	numWaysSpadesCommonDeckA := combination(12, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Hearts) * combination(8, inv.Diamonds)
 	numWaysSpadesCommonDeckB := combination(12, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Hearts) * combination(10, inv.Diamonds)
 	numWaysSpadesCommonDeckC := combination(12, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Hearts) * combination(10, inv.Diamonds)
-	numWaysClubCommonDeckA := combination(12, inv.Clubs) * combination(10, inv.Spades) * combination(10, inv.Hearts) * combination(8, inv.Diamonds)
-	numWaysClubCommonDeckB := combination(12, inv.Clubs) * combination(10, inv.Spades) * combination(8, inv.Hearts) * combination(10, inv.Diamonds)
-	numWaysClubCommonDeckC := combination(12, inv.Clubs) * combination(8, inv.Spades) * combination(10, inv.Hearts) * combination(10, inv.Diamonds)
-	numWaysHeartCommonDeckA := combination(12, inv.Hearts) * combination(10, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Diamonds)
-	numWaysHeartCommonDeckB := combination(12, inv.Hearts) * combination(10, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Diamonds)
-	numWaysHeartCommonDeckC := combination(12, inv.Hearts) * combination(8, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Diamonds)
-	numWaysDiamondCommonDeckA := combination(12, inv.Diamonds) * combination(10, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Hearts)
-	numWaysDiamondCommonDeckB := combination(12, inv.Diamonds) * combination(10, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Hearts)
-	numWaysDiamondCommonDeckC := combination(12, inv.Diamonds) * combination(8, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Hearts)
-
+	numWaysClubsCommonDeckA := combination(12, inv.Clubs) * combination(10, inv.Spades) * combination(10, inv.Hearts) * combination(8, inv.Diamonds)
+	numWaysClubsCommonDeckB := combination(12, inv.Clubs) * combination(10, inv.Spades) * combination(8, inv.Hearts) * combination(10, inv.Diamonds)
+	numWaysClubsCommonDeckC := combination(12, inv.Clubs) * combination(8, inv.Spades) * combination(10, inv.Hearts) * combination(10, inv.Diamonds)
+	numWaysHeartsCommonDeckA := combination(12, inv.Hearts) * combination(10, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Diamonds)
+	numWaysHeartsCommonDeckB := combination(12, inv.Hearts) * combination(10, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Diamonds)
+	numWaysHeartsCommonDeckC := combination(12, inv.Hearts) * combination(8, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Diamonds)
+	numWaysDiamondsCommonDeckA := combination(12, inv.Diamonds) * combination(10, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Hearts)
+	numWaysDiamondsCommonDeckB := combination(12, inv.Diamonds) * combination(10, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Hearts)
+	numWaysDiamondsCommonDeckC := combination(12, inv.Diamonds) * combination(8, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Hearts)
+	var totalProb float32
 	for card, _ := range cards {
-		var totalWays float32
+		var totalWays int
 		var probBgivenA float32
 		var bayescalc float32
+		var probBnotA float32
+		var probB float32
 		switch card {
 		case spades:
-			totalWays := (numWaysSpadesCommonDeckA * 1 / 3) + (numWaysSpadesCommonDeckB * 1 / 3) + (numWaysSpadesCommonDeckC * 1 / 3)
-			probBgivenA := float32(totalWays / totalHands)
-			probBnotA := (float32(1 / 3 * (numWaysClubCommonDeckA + numWaysClubCommonDeckB + numWaysClubCommonDeckC + numWaysHeartCommonDeckA + numWaysHeartCommonDeckB + numWaysHeartCommonDeckC + numWaysDiamondCommonDeckA + numWaysDiamondCommonDeckB + numWaysDiamondCommonDeckC))) / totalHands
-			probB := (probBgivenA * initProb) + (probBnotA * float32(1-initProb))
-			bayescalc := (float32(probBgivenA) * (initProb) / probB)
-
+			totalWays = (numWaysSpadesCommonDeckA) + (numWaysSpadesCommonDeckB) + (numWaysSpadesCommonDeckC)
+			probBgivenA = (float32(totalWays) * 1.0 / 3.0) / float32(totalHands)
+			probBnotA = (1.0 / 3.0 * float32(numWaysClubsCommonDeckA+numWaysClubsCommonDeckB+numWaysClubsCommonDeckC+numWaysHeartsCommonDeckA+numWaysHeartsCommonDeckB+numWaysHeartsCommonDeckC+numWaysDiamondsCommonDeckA+numWaysDiamondsCommonDeckB+numWaysDiamondsCommonDeckC)) / totalHands
+			probB = (probBgivenA * initProb) + (probBnotA * float32(1-initProb))
+			bayescalc = (float32(probBgivenA) * (initProb) / probB)
+		case clubs:
+			totalWays = numWaysClubsCommonDeckA + numWaysClubsCommonDeckB + numWaysClubsCommonDeckC
+			probBgivenA = (float32(totalWays) * (1.0 / 3.0)) / float32(totalHands)
+			probBnotA = ((1.0 / 3.0) * float32(numWaysSpadesCommonDeckA+numWaysSpadesCommonDeckB+numWaysSpadesCommonDeckC+numWaysHeartsCommonDeckA+numWaysHeartsCommonDeckB+numWaysHeartsCommonDeckC+numWaysDiamondsCommonDeckA+numWaysDiamondsCommonDeckB+numWaysDiamondsCommonDeckC)) / totalHands
+			probB = (probBgivenA * initProb) + (probBnotA * float32(1-initProb))
+			bayescalc = (float32(probBgivenA) * (initProb) / probB)
+		case hearts:
+			totalWays = numWaysHeartsCommonDeckA + numWaysHeartsCommonDeckB + numWaysHeartsCommonDeckC
+			probBgivenA = (float32(totalWays) * (1.0 / 3.0)) / float32(totalHands)
+			probBnotA = (1.0 / 3.0 * float32(numWaysClubsCommonDeckA+numWaysClubsCommonDeckB+numWaysClubsCommonDeckC+numWaysSpadesCommonDeckA+numWaysSpadesCommonDeckB+numWaysSpadesCommonDeckC+numWaysDiamondsCommonDeckA+numWaysDiamondsCommonDeckB+numWaysDiamondsCommonDeckC)) / totalHands
+			probB = (probBgivenA * initProb) + (probBnotA * float32(1-initProb))
+			bayescalc = (float32(probBgivenA) * (initProb) / probB)
+		case diamonds:
+			totalWays = numWaysDiamondsCommonDeckA + numWaysDiamondsCommonDeckB + numWaysDiamondsCommonDeckC
+			probBgivenA = (float32(totalWays) * (1.0 / 3.0)) / float32(totalHands)
+			probBnotA = (1.0 / 3.0 * float32(numWaysClubsCommonDeckA+numWaysClubsCommonDeckB+numWaysClubsCommonDeckC+numWaysHeartsCommonDeckA+numWaysHeartsCommonDeckB+numWaysHeartsCommonDeckC+numWaysSpadesCommonDeckA+numWaysSpadesCommonDeckB+numWaysSpadesCommonDeckC)) / totalHands
+			probB = (probBgivenA * initProb) + (probBnotA * float32(1-initProb))
+			bayescalc = (float32(probBgivenA) * (initProb) / probB)
 		}
-
+		probabilities[card] = bayescalc
+		totalProb += bayescalc
 	}
+	for card, prob := range probabilities {
+		normalProb := prob / totalProb
+		if normalProb > max {
+			max = normalProb
+			maxCard = card
+		}
+	}
+	return maxCard, max
+
 }
 
 // refine this later
