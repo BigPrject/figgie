@@ -1,6 +1,8 @@
 package main
 
-import "math"
+import (
+	"math"
+)
 
 // in the form {spades,clubs,hearts,diamonds,goalIndex}
 /*
@@ -31,26 +33,38 @@ func startList(inv *Inventory) {
 */
 
 // card counting logic
-func (fd *Fundbot) cardCount(Trades []Trade) {
-	for _, trade := range Trades {
+func (fd *Fundbot) cardCount(gs *GameState) {
+	for _, trade := range gs.Trades {
 		switch trade.Card {
 		case spades:
-			cardAlgo(&fd.spadeList, &trade)
+			cardAlgo(&fd.spadeList, &trade, gs)
 
 		case clubs:
-			cardAlgo(&fd.clubList, &trade)
+			cardAlgo(&fd.clubList, &trade, gs)
 		case hearts:
-			cardAlgo(&fd.heartList, &trade)
+			cardAlgo(&fd.heartList, &trade, gs)
 		case diamonds:
-			cardAlgo(&fd.diamondList, &trade)
+			cardAlgo(&fd.diamondList, &trade, gs)
 		}
 	}
 
 }
 
-func cardAlgo(List *[4]int, trade *Trade) {
-	buyer := players[trade.Buyer]
-	seller := players[trade.Seller]
+var playerIndex = 0
+
+func cardAlgo(List *[4]int, trade *Trade, gs *GameState) {
+	buyer, buyerPresent := gs.players[trade.Buyer]
+	if !buyerPresent {
+		gs.players[trade.Buyer] = (playerIndex % 4)
+		buyer = playerIndex
+		playerIndex++
+	}
+	seller, sellerPresent := gs.players[trade.Seller]
+	if !sellerPresent {
+		gs.players[trade.Seller] = (playerIndex % 4)
+		seller = playerIndex
+		playerIndex++
+	}
 
 	if List[seller] < 1 {
 		List[buyer]++
@@ -143,7 +157,7 @@ func (fd *Fundbot) valuePayout(index int, amount int) int {
 	return 0
 }
 
-func (fd *Fundbot) expectedBuy(suit Suit, cards int, distrubiton []float32) int {
+func (fd *Fundbot) expectedBuy(suit Suit, cards int, distrubiton [12]float32) int {
 	expectedValue := 0
 	// cards is amount of cards in my hand
 	for i := 0; i < 12; i++ {
@@ -154,7 +168,7 @@ func (fd *Fundbot) expectedBuy(suit Suit, cards int, distrubiton []float32) int 
 
 }
 
-func (fd *Fundbot) expectedSell(suit Suit, cards int, distrubiton []float32) int {
+func (fd *Fundbot) expectedSell(suit Suit, cards int, distrubiton [12]float32) int {
 
 	return fd.expectedBuy(suit, cards-1, distrubiton)
 

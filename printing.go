@@ -61,6 +61,7 @@ func prettyPrintEndGame(data endGameStruct) {
 
 	if nameToPoints[myplayerName] != pointsArr[0] || nameToPoints[myplayerName] != pointsArr[1] {
 		fmt.Println(darkGreen + "You lost the game..." + reset)
+
 	} else {
 		fmt.Println(darkGreen + "You were top 2!!! moving on to the next game" + reset)
 

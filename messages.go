@@ -40,7 +40,7 @@ type CardData struct {
 	LastTrade string  `json:"last_trade"`
 }
 
-func handleMessage(payload []byte, gs *GameState) {
+func handleMessage(payload []byte, gs *GameState, c *Client) {
 	var m Message
 	err := json.Unmarshal(payload, &m)
 	if err != nil {
@@ -50,7 +50,7 @@ func handleMessage(payload []byte, gs *GameState) {
 	case update:
 		updateMessage(m, gs)
 	case dealing:
-		dealtCards(m, gs)
+		dealtCards(m, gs, c)
 	case endOfGame:
 		endGame(m, gs)
 	case endOfRound:
@@ -59,18 +59,29 @@ func handleMessage(payload []byte, gs *GameState) {
 
 }
 
-func dealtCards(message Message, gs *GameState) {
-	var inv *Inventory
-	err := json.Unmarshal(message.Data, inv)
+func dealtCards(message Message, gs *GameState, client *Client) {
+	var inv Inventory
+	err := json.Unmarshal(message.Data, &inv)
 	if err != nil {
 		fmt.Printf("Can't unmarhsall inventory %v", err)
 	}
-	gs.Inventory = inv
+	gs.Inventory = &inv
+	fmt.Printf("Your Deck:\n|----------------------------|\nSpades: %d\n Clubs :%d\n Hearts: %d\n Diamonds: %d\n|----------------------------|\n", inv.Spades, inv.Clubs, inv.Hearts, inv.Diamonds)
 	gs.Balance -= 50
-	select {
-	case invChannel <- struct{}{}:
-	default:
+
+	card, prob := gs.Inventory.complexPrior()
+	if prob >= 0.5 {
+		gs.goalSuit = card.getGoalSuit()
+		//run bayes bot
+		go bayesBot(card, prob, gs)
+	} else {
+		go startFund(gs, client)
 	}
+
+	exploitAlgo(client)
+	go listenOrder(client, gs)
+
+	fmt.Println("Algo's have started")
 }
 
 func endRound(message Message, gs *GameState) {
@@ -84,7 +95,10 @@ func endRound(message Message, gs *GameState) {
 
 	gs.Inventory = &Inventory{}
 	gs.Orderbook = NewOrderbook()
-	gs.Trades = make([]Trade, 0)
+	gs.Trades = make([]Trade, 100)
+	gs.myTrades = make([]Trade, 10)
+	gs.goalSuit = none
+	shutdownRoutine()
 
 }
 
@@ -101,7 +115,10 @@ func endGame(message Message, gs *GameState) {
 	gs.Inventory = &Inventory{}
 	gs.Orderbook = NewOrderbook()
 	gs.Trades = make([]Trade, 100)
+	gs.myTrades = make([]Trade, 100)
 	gs.Balance = 350
+	gs.goalSuit = none
+	shutdownRoutine()
 
 }
 
@@ -114,4 +131,9 @@ func updateMessage(message Message, gs *GameState) {
 	}
 
 	processUpdate(update, gs)
+}
+
+func shutdownRoutine() {
+	cancelCtx()
+	fmt.Println("Routines have been shut down")
 }

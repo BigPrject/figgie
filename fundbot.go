@@ -9,7 +9,6 @@ type Fundbot struct {
 	clubList    [4]int
 	heartList   [4]int
 	diamondList [4]int
-	inv         *Inventory
 }
 
 func NewFundbot() *Fundbot {
@@ -43,24 +42,26 @@ func startFund(gs *GameState, client *Client) {
 	bot := NewFundbot()
 	for {
 		select {
+		case <-ctx.Done():
+			return
 		case <-tradeChannel:
 			bot.runFundamental(gs, client)
 		}
+
 	}
+
 }
 
 func (fd *Fundbot) runFundamental(gs *GameState, client *Client) {
 	//Optimize later by making inventory be a map.
-	hand := map[Suit]int{spades: fd.inv.Spades,
-		clubs:    fd.inv.Clubs,
-		diamonds: fd.inv.Diamonds, hearts: fd.inv.Hearts}
-	fd.cardCount(gs.Trades)
+
+	fd.cardCount(gs)
 	sums := fd.sumList()
 	deckDistrbution := fd.calcMultinomal(sums)
-
-	for suit, amount := range hand {
-		expBuy := fd.expectedBuy(suit, amount, deckDistrbution[:])
-		expSell := fd.expectedSell(suit, amount, deckDistrbution[:])
+	hand := getHand(gs)
+	for suit, amount := range *hand {
+		expBuy := fd.expectedBuy(suit, amount, deckDistrbution)
+		expSell := fd.expectedSell(suit, amount, deckDistrbution)
 		sendOrder(suit, "buy", expBuy, client)
 		sendOrder(suit, "buy", expSell, client)
 		//send to order exec.

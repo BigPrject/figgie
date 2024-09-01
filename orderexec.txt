@@ -1,21 +1,28 @@
-// run bayes
-//take in signals from fundbot and arb, preprocess them for sanity checks then go 
-// if valid bayes signal have a base case algo for order exec to run it.
- // bayes algo should gradually gain goal suit cards and sell non goal suit
- // have some log func for my expected buy of my goal suit, should never sell my goal suit.
-// make bayes its own routine - send its own signals
-// have bayes bot listen on inventoryChannel; get probs,
-// run calcpropr if > .50 spin off unique routine that commits to getting goal suite
+ ideas: 
 
-//I can cross the spread if it is 1 
+
+buy for low sell for higher, 
+udercut by half
+// add lbo case
+// for arb something keep track of which trades were for arb puroposes  
+ run bayes
+take in signals from fundbot and arb, preprocess them for sanity checks then go 
+ if valid bayes signal have a base case algo for order exec to run it.
+ bayes algo should gradually gain goal suit cards and sell non goal suit
+ have some log func for my expected buy of my goal suit, should never sell my goal suit.
+ make bayes its own routine - send its own signals
+have bayes bot listen on inventoryChannel; get probs,
+run calcpropr if > .50 spin off unique routine that commits to getting goal suite
+
+I can cross the spread if it is 1-2
 Willingness to pay function
-// willingness to pay should incrase as the more cards I have in my hand?
-// simillar to the traders in a strange land paper...
+willingness to pay should incrase as the more cards I have in my hand?
+simillar to the traders in a strange land paper...
 
 \frac{MAXAMOUNTTOPAY}{\left(1+e^{\left(-k\left(x-m\right)\right)}\right)}
 
-22/
 
-// If I send a order > thatn there the limit will be hit... I should also gaurd agianst sending a price too high...
+If I send a order > thatn there the limit will be hit... I should also gaurd agianst sending a price too high...
 
-// my first orders should be equal to last price then
+ my first orders should be equal to last price then
+

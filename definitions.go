@@ -1,12 +1,20 @@
 package main
 
-import "encoding/json"
+import (
+	"context"
+	"encoding/json"
+	"sync"
+)
 
 // Channels
-var tradeChannel = make(chan struct{}, 1)
-var bookChannel = make(chan bboDescription, 1)
-var invChannel = make(chan struct{}, 1)
-var bboChannel = make(chan struct{}, 1)
+
+var (
+	ctx, cancelCtx = context.WithCancel(context.Background())
+	tradeChannel   = make(chan struct{}, 1)
+	bboChannel     = make(chan bboDescription, 1)
+	lboChannel     = make(chan struct{}, 1)
+	wg             sync.WaitGroup
+)
 
 type Suit string
 
@@ -28,26 +36,24 @@ type Message struct {
 }
 
 // add seprate map of players on exchange, where each of them correspond p(i)
-var players map[string]int = map[string]int{"me": 0, "p2": 1, "p3": 2, "p4": 3}
+//var players map[string]int = map[string]int{"me": 0, "p2": 1, "p3": 2, "p4": 3}
 
 //var Trades = make([]Trade, 0, 100)
 
 const (
-	spades     Suit   = "spades"
-	clubs      Suit   = "clubs"
-	diamonds   Suit   = "diamonds"
-	hearts     Suit   = "hearts"
-	dealing    string = "dealing_cards"
-	update     string = "update"
-	endOfRound string = "end_round"
-	endOfGame  string = "end_game"
-)
-
-const (
-	wsURL        = "ws://testnet-ws.figgiewars.com"
-	resURL       = "http://testnet.figgiewars.com"
-	playerID     = "LebronJames"
-	myplayerName = "bellamy"
+	spades       Suit   = "spades"
+	clubs        Suit   = "clubs"
+	diamonds     Suit   = "diamonds"
+	hearts       Suit   = "hearts"
+	none         Suit   = ""
+	dealing      string = "dealing_cards"
+	update       string = "update"
+	endOfRound   string = "end_round"
+	endOfGame    string = "end_game"
+	wsURL               = "ws://testnet-ws.figgiewars.com"
+	resURL              = "http://testnet.figgiewars.com"
+	playerID            = "LebronJames"
+	myplayerName        = "bellamy"
 )
 
 // Helpers

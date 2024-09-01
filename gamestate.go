@@ -6,8 +6,12 @@ type GameState struct {
 	Inventory *Inventory
 	Orderbook *Orderbook
 	Trades    []Trade
+	myTrades  []Trade
 	rwMutex   sync.RWMutex
 	Balance   int
+	players   map[string]int
+	goalSuit  Suit
+	arbPrice  int
 }
 
 func NewGameState() *GameState {
@@ -16,6 +20,9 @@ func NewGameState() *GameState {
 		Orderbook: NewOrderbook(),
 		Trades:    make([]Trade, 100),
 		Balance:   350,
+		players:   make(map[string]int, 4),
+		myTrades:  make([]Trade, 10),
+		arbPrice:  0,
 	}
 }
 
@@ -30,3 +37,9 @@ func NewGameState() *GameState {
 }
 
 */
+
+func getHand(gs *GameState) *map[Suit]int {
+	return &map[Suit]int{spades: gs.Inventory.Spades,
+		clubs:    gs.Inventory.Clubs,
+		diamonds: gs.Inventory.Diamonds, hearts: gs.Inventory.Hearts}
+}

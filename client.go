@@ -47,7 +47,7 @@ func (c *Client) registerTestNet(id string) error {
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return fmt.Errorf("couldn't send register request ")
+		return fmt.Errorf("couldn't read register body ")
 	}
 	var respStruct apiResponse
 	json.Unmarshal(body, &respStruct)
@@ -87,7 +87,7 @@ func (c *Client) ListenToMessages(gs *GameState) {
 		if err != nil {
 			fmt.Printf("An error Occured %v", err)
 		} else {
-			handleMessage(payload, gs)
+			handleMessage(payload, gs, c)
 		}
 	}
 }
@@ -104,7 +104,7 @@ func (c *Client) PlaceOrder(order *Order) error {
 		return fmt.Errorf("falied to create order")
 	}
 	req.Header.Set("Content-Type", "application/json")
-
+	req.Header.Set("Playerid", playerID)
 	resp, err := c.HttpClient.Do(req)
 
 	if err != nil {
@@ -113,7 +113,6 @@ func (c *Client) PlaceOrder(order *Order) error {
 	}
 	defer resp.Body.Close()
 	body, err := io.ReadAll(resp.Body)
-
 	if err != nil {
 		return fmt.Errorf("failed to read response body")
 	}

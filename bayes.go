@@ -94,11 +94,8 @@ func (inv *Inventory) complexPrior() (Suit, float32) {
 			bayesComplex := (probCardCommonOtherCard * initProb) / probCardOtherCard
 
 			// maybe use max function instead
-			if complexProbs[card] == 0 {
-				complexProbs[card] = bayesComplex
-			} else {
-				complexProbs[card] = max(bayesComplex, complexProbs[card])
-			}
+
+			complexProbs[card] = max(bayesComplex, complexProbs[card])
 
 			//fmt.Printf("Probability of %s given %d of %s is %.2f\n", card, count, otherCard, bayesComplex)
 
@@ -132,7 +129,7 @@ func (inv *Inventory) englandCalc() (Suit, float32) {
 	}
 	probabilities := make(map[Suit]float32)
 	// can't divide by total hands, don't sume to 1 have to divide by some of all scenarios
-
+	// Mulitply ways by 4? if I want to divide by total hands as I'm only looking at my hand right now
 	numWaysSpadesCommonDeckA := combination(12, inv.Spades) * combination(10, inv.Clubs) * combination(10, inv.Hearts) * combination(8, inv.Diamonds)
 	numWaysSpadesCommonDeckB := combination(12, inv.Spades) * combination(10, inv.Clubs) * combination(8, inv.Hearts) * combination(10, inv.Diamonds)
 	numWaysSpadesCommonDeckC := combination(12, inv.Spades) * combination(8, inv.Clubs) * combination(10, inv.Hearts) * combination(10, inv.Diamonds)
@@ -194,21 +191,31 @@ func (inv *Inventory) englandCalc() (Suit, float32) {
 
 // refine this later
 func bayesPrice(prior float32) int {
-	maxPay := 22.0
+	maxPay := 30
 	// stepness of curve
 	k := 10.0
 	mid := 0.5
 	// add a sum that accounts for the amount I have in my hand, more I have in my hand, more I should be willing to pay.
-	return int(maxPay / (1 + math.Exp(-k*(float64(prior)-mid))))
+	return int(float64(maxPay) / (1 + math.Exp(-k*(float64(prior)-mid))))
+}
+
+func bayesBot(card Suit, prob float32, gs *GameState) {
+	goalSuit := card.getGoalSuit()
+	target := goalSuit.getGoalSuit()
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			bayesAlgo(target, gs)
+		}
+	}
 
 }
 
-func bayesBot(card Suit, prob float32) {
-	goalSuit := card.getGoalSuit()
-	goalSuit.getGoalSuit()
-	for {
-		//listens on order and runs bayes bot
-	}
+// call this when bayes calc is valid , this should off all other suit' and gain goal suit
+func bayesAlgo(card Suit, gs *GameState) {
+
 }
 
 func combination(n, k int) int {
@@ -223,9 +230,4 @@ func combination(n, k int) int {
 		comb = (n - k + i) * comb / i
 	}
 	return comb
-}
-
-// call this when bayes calc is valid , this should off all other suit' and gain goal suit
-func bayesAlgo(card Suit, gs *GameState) {
-
 }

@@ -7,8 +7,6 @@ import (
 	"sync"
 )
 
-var tradesMu sync.Mutex
-
 type Quote struct {
 	Price  int    `json:"price"`
 	Quoter string `json:"player_name"`
@@ -83,7 +81,7 @@ func processUpdate(update UpdateStruct, gs *GameState) {
 }
 
 type bboDescription struct {
-	book      *Book
+	suit      Suit
 	quote     *Quote
 	direction string
 }
@@ -92,6 +90,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 	// should probably make a getter func for the prices...
 	// setting the qouter field is probably uncessary for me
 	// I should ignore
+	//does bbo even matter to me?
 	var bboDesc bboDescription
 	gs.rwMutex.Lock()
 	defer gs.rwMutex.Unlock()
@@ -103,7 +102,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Spadebook.Ask.Price = Quote.Price
 				gs.Orderbook.Spadebook.Ask.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Spadebook, quote: &Quote, direction: "ask"}
+				bboDesc = bboDescription{suit: spades, quote: &Quote, direction: "ask"}
 			}
 
 		}
@@ -112,7 +111,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Spadebook.Bid.Price = Quote.Price
 				gs.Orderbook.Spadebook.Bid.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Spadebook, quote: &Quote, direction: "bid"}
+				bboDesc = bboDescription{suit: spades, quote: &Quote, direction: "bid"}
 
 			}
 
@@ -124,7 +123,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Clubbook.Ask.Price = Quote.Price
 				gs.Orderbook.Clubbook.Ask.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Clubbook, quote: &Quote, direction: "ask"}
+				bboDesc = bboDescription{suit: clubs, quote: &Quote, direction: "ask"}
 
 			}
 
@@ -134,7 +133,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Clubbook.Bid.Price = Quote.Price
 				gs.Orderbook.Clubbook.Bid.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Clubbook, quote: &Quote, direction: "bid"}
+				bboDesc = bboDescription{suit: clubs, quote: &Quote, direction: "bid"}
 			}
 
 		}
@@ -145,7 +144,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Heartbook.Ask.Price = Quote.Price
 				gs.Orderbook.Heartbook.Ask.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Heartbook, quote: &Quote, direction: "ask"}
+				bboDesc = bboDescription{suit: hearts, quote: &Quote, direction: "ask"}
 			}
 
 		}
@@ -154,7 +153,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Heartbook.Bid.Price = Quote.Price
 				gs.Orderbook.Heartbook.Bid.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Heartbook, quote: &Quote, direction: "bid"}
+				bboDesc = bboDescription{suit: hearts, quote: &Quote, direction: "bid"}
 			}
 
 		}
@@ -165,7 +164,7 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Diamondbook.Ask.Price = Quote.Price
 				gs.Orderbook.Diamondbook.Ask.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Diamondbook, quote: &Quote, direction: "ask"}
+				bboDesc = bboDescription{suit: hearts, quote: &Quote, direction: "ask"}
 
 			}
 
@@ -177,17 +176,16 @@ func findBBO(cd CardData, gs *GameState, card string) {
 				gs.Orderbook.Diamondbook.Bid.Price = Quote.Price
 				gs.Orderbook.Diamondbook.Bid.Quoter = Quote.Quoter
 				isBBO = true
-				bboDesc = bboDescription{book: gs.Orderbook.Diamondbook, quote: &Quote, direction: "bid"}
+				bboDesc = bboDescription{suit: hearts, quote: &Quote, direction: "bid"}
 
 			}
 
 		}
 
 	}
-	// could optimize for bbo ask and buy...
 	if isBBO {
 		select {
-		case bookChannel <- bboDesc:
+		case bboChannel <- bboDesc:
 		default:
 		}
 	}
@@ -195,44 +193,30 @@ func findBBO(cd CardData, gs *GameState, card string) {
 }
 
 func clearBook(suit Suit, gs *GameState, price int) {
-	//reset every Orderbook execpt suit of trade
-	//if time simply by making a map and iterating through and reseting.
 	gs.rwMutex.Lock()
 	defer gs.rwMutex.Unlock()
+	//does lbo operation, sets it back to default
+	gs.Orderbook.Clubbook.Ask.Price = 100
+	gs.Orderbook.Diamondbook.Ask.Price = 100
+	gs.Orderbook.Heartbook.Ask.Price = 100
+	gs.Orderbook.Spadebook.Ask.Price = 100
+	gs.Orderbook.Clubbook.Bid.Price = 0
+	gs.Orderbook.Diamondbook.Bid.Price = 0
+	gs.Orderbook.Heartbook.Bid.Price = 0
+	gs.Orderbook.Spadebook.Bid.Price = 0
 	switch suit {
 	case spades:
-		gs.Orderbook.Clubbook.Ask.Price = 0
-		gs.Orderbook.Diamondbook.Ask.Price = 0
-		gs.Orderbook.Heartbook.Ask.Price = 0
-		gs.Orderbook.Clubbook.Bid.Price = 0
-		gs.Orderbook.Diamondbook.Bid.Price = 0
-		gs.Orderbook.Heartbook.Bid.Price = 0
 		gs.Orderbook.Spadebook.LastPrice = price
 	case clubs:
-		gs.Orderbook.Spadebook.Ask.Price = 0
-		gs.Orderbook.Diamondbook.Ask.Price = 0
-		gs.Orderbook.Heartbook.Ask.Price = 0
-		gs.Orderbook.Spadebook.Bid.Price = 0
-		gs.Orderbook.Diamondbook.Bid.Price = 0
-		gs.Orderbook.Heartbook.Bid.Price = 0
 		gs.Orderbook.Clubbook.LastPrice = price
 	case diamonds:
-		gs.Orderbook.Spadebook.Ask.Price = 0
-		gs.Orderbook.Clubbook.Ask.Price = 0
-		gs.Orderbook.Heartbook.Ask.Price = 0
-		gs.Orderbook.Spadebook.Bid.Price = 0
-		gs.Orderbook.Clubbook.Bid.Price = 0
-		gs.Orderbook.Heartbook.Bid.Price = 0
 		gs.Orderbook.Diamondbook.LastPrice = price
 	case hearts:
-		gs.Orderbook.Spadebook.Ask.Price = 0
-		gs.Orderbook.Clubbook.Ask.Price = 0
-		gs.Orderbook.Diamondbook.Ask.Price = 0
-		gs.Orderbook.Spadebook.Bid.Price = 0
-		gs.Orderbook.Clubbook.Bid.Price = 0
-		gs.Orderbook.Diamondbook.Bid.Price = 0
 		gs.Orderbook.Heartbook.LastPrice = price
 	}
+
+	lboChannel <- struct{}{}
+
 }
 
 func processTrade(s string, gs *GameState) {
